@@ -46,7 +46,7 @@ def get_batch_data():
                                   min_after_dequeue=cfg.batch_size * 32,
                                   allow_smaller_final_batch=False)
 
-    return(X, Y)
+    return X, Y
 
 
 def save_images(imgs, size, path):
@@ -57,7 +57,7 @@ def save_images(imgs, size, path):
         path: the path to save images
     '''
     imgs = (imgs + 1.) / 2  # inverse_transform
-    return(scipy.misc.imsave(path, mergeImgs(imgs, size)))
+    return scipy.misc.imsave(path, mergeImgs(imgs, size))
 
 
 def mergeImgs(images, size):
@@ -72,6 +72,6 @@ def mergeImgs(images, size):
 
 
 if __name__ == '__main__':
-    X, Y = load_mnist(cfg.dataset, cfg.is_training)
+    X, Y = load_mnist(cfg.is_training)
     print(X.get_shape())
     print(X.dtype)

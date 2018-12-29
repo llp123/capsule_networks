@@ -5,7 +5,7 @@ from config import cfg
 
 
 class CapsConv(object):
-    ''' Capsule layer.
+    """ Capsule layer.
     Args:
         input: A 4-D tensor.
         num_units: integer, the length of the output vector of a capsule.
@@ -15,12 +15,21 @@ class CapsConv(object):
 
     Returns:
         A 4-D tensor.
-    '''
+    """
+
     def __init__(self, num_units, with_routing=True):
         self.num_units = num_units
         self.with_routing = with_routing
 
     def __call__(self, input, num_outputs, kernel_size=None, stride=None):
+        """
+        一个类实例也可以变成一个可调用对象
+        :param input:
+        :param num_outputs:
+        :param kernel_size:
+        :param stride:
+        :return:
+        """
         self.num_outputs = num_outputs
         self.kernel_size = kernel_size
         self.stride = stride
@@ -39,7 +48,7 @@ class CapsConv(object):
                                                       self.kernel_size,
                                                       self.stride,
                                                       padding="VALID")
-                    caps_i = tf.reshape(caps_i, shape=(cfg.batch_size, -1, 1, 1))
+                    caps_i = tf.reshape(caps_i, shape=(cfg.batch_size, -1, 1, 1))  # [batch_size, 1152, 1,1]
                     capsules.append(caps_i)
 
             assert capsules[0].get_shape() == [cfg.batch_size, 1152, 1, 1]
@@ -59,18 +68,18 @@ class CapsConv(object):
             capsules = []
             for j in range(self.num_outputs):
                 with tf.variable_scope('caps_' + str(j)):
-                    caps_j, b_IJ = capsule(input, b_IJ, j)
+                    caps_j, b_IJ = routing_algoritm(input, b_IJ, j)
                     capsules.append(caps_j)
 
             # Return a tensor with shape [batch_size, 10, 16, 1]
             capsules = tf.concat(capsules, axis=1)
             assert capsules.get_shape() == [cfg.batch_size, 10, 16, 1]
 
-        return(capsules)
+        return capsules
 
 
-def capsule(input, b_IJ, idx_j):
-    ''' The routing algorithm for one capsule in the layer l+1.
+def routing_algoritm(input, b_IJ, idx_j):
+    """ The routing algorithm for one capsule in the layer l+1.
 
     Args:
         input: A Tensor with [batch_size, num_caps_l=1152, length(u_i)=8, 1]
@@ -80,8 +89,8 @@ def capsule(input, b_IJ, idx_j):
         vector output `v_j` of capsule j in the layer l+1
     Notes:
         u_i represents the vector output of capsule i in the layer l, and
-        v_j the vector output of capsule j in the layer l+1.
-     '''
+        v_j the vector output of capsule j in the layer l+1. 
+     """
 
     with tf.variable_scope('routing'):
         w_initializer = np.random.normal(size=[1, 1152, 8, 16], scale=0.01)
@@ -129,18 +138,18 @@ def capsule(input, b_IJ, idx_j):
             b_Ij += tf.reduce_sum(u_produce_v, axis=0, keep_dims=True)
             b_IJ = tf.concat([b_Il, b_Ij, b_Ir], axis=2)
 
-        return(v_j, b_IJ)
+        return v_j, b_IJ
 
 
 def squash(vector):
-    '''Squashing function.
+    """Squashing function.
     Args:
         vector: A 4-D tensor with shape [batch_size, num_caps, vec_len, 1],
     Returns:
         A 4-D tensor with the same shape as vector but
         squashed in 3rd and 4th dimensions.
-    '''
+    """
     vec_abs = tf.sqrt(tf.reduce_sum(tf.square(vector)))  # a scalar
     scalar_factor = tf.square(vec_abs) / (1 + tf.square(vec_abs))
     vec_squashed = scalar_factor * tf.divide(vector, vec_abs)  # element-wise
-    return(vec_squashed)
+    return vec_squashed

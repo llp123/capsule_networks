@@ -27,10 +27,15 @@ class CapsNet(object):
         tf.logging.info('Seting up the main structure')
 
     def build_arch(self):
+        """
+        搭建capsNet架构
+        :return:
+        """
         with tf.variable_scope('Conv1_layer'):
             # Conv1, [batch_size, 20, 20, 256]
             conv1 = tf.contrib.layers.conv2d(self.X, num_outputs=256,
-                                             kernel_size=9, stride=1,
+                                             kernel_size=9,
+                                             stride=1,
                                              padding='VALID')
             assert conv1.get_shape() == [cfg.batch_size, 20, 20, 256]
 

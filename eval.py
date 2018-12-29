@@ -6,12 +6,11 @@ from utils import load_mnist
 from utils import save_images
 from capsNet import CapsNet
 
-
 if __name__ == '__main__':
-    capsNet = CapsNet(is_training=cfg.is_training)
+    capsNet = CapsNet(is_training=False)
     tf.logging.info('Graph loaded')
 
-    teX, teY = load_mnist(cfg.dataset, cfg.is_training)
+    teX, teY = load_mnist(cfg.dataset, False)
     with capsNet.graph.as_default():
         sv = tf.train.Supervisor(logdir=cfg.logdir)
         # with sv.managed_session(config=tf.ConfigProto(allow_soft_placement=True)) as sess:
@@ -25,7 +24,7 @@ if __name__ == '__main__':
                 end = start + cfg.batch_size
                 recon_imgs = sess.run(capsNet.decoded, {capsNet.X: teX[start:end]})
                 orgin_imgs = np.reshape(teX[start:end], (cfg.batch_size, -1))
-                squared = np.square(recon_imgs - orgin_imgs)
+                squared = np.square(recon_imgs - orgin_imgs)  # (pre-label)^2
                 reconstruction_err.append(np.mean(squared))
 
                 if i % 5 == 0:
